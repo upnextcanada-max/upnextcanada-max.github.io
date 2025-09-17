@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Your Brand — Simple One‑Page Site</title>
+  <meta name="description" content="Starter one‑page website. Replace text to publish your site in minutes." />
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #121820;
+      --text: #e9eef5;
+      --muted: #a9b6c6;
+      --accent: #6ee7ff;
+      --accent-2: #7c5cff;
+      --ring: #1e90ff44;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text); background: radial-gradient(1000px 600px at 10% -10%, #182131, transparent), var(--bg);
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+    header { position: sticky; top: 0; z-index: 10; background: rgba(11,15,20,.8); backdrop-filter: blur(8px); border-bottom: 1px solid #1d2530; }
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .3px; }
+    .logo { width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 0 0 3px #00000022; }
+    nav ul { display: flex; gap: 18px; list-style: none; margin: 0; padding: 0; }
+
+    .hero { padding: 64px 0 36px; }
+    .hero .wrap { display: grid; grid-template-columns: 1.1fr .9fr; gap: 32px; align-items: center; }
+    h1 { font-size: clamp(28px, 3.3vw, 44px); line-height: 1.15; margin: 0 0 12px; }
+    .lead { font-size: 18px; color: var(--muted); margin: 0 0 22px; }
+    .btns { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 16px; border-radius: 12px; border: 1px solid #2a3442; background: #171f2b; color: var(--text); cursor: pointer; font-weight: 600; }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #0c0f15; border-color: transparent; }
+    .btn:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+    .panel { background: linear-gradient(180deg, #141b25, #0f151e); border: 1px solid #1f2a38; border-radius: 16px; padding: 18px; box-shadow: 0 10px 30px #00000044 inset, 0 10px 30px #00000022; }
+    .fake-img { aspect-ratio: 16 / 10; border-radius: 12px; background: repeating-linear-gradient(135deg, #172130 0 12px, #121a26 12px 24px); display: grid; place-items: center; color: #92a3ba; border: 1px dashed #263142; }
+
+    section { padding: 56px 0; }
+    h2 { font-size: clamp(22px, 2.6vw, 32px); margin: 0 0 12px; }
+    .sub { color: var(--muted); margin: 0 0 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .card { background: #0f151e; border: 1px solid #1f2a38; border-radius: 14px; padding: 16px; }
+    .card h3 { margin: 8px 0; font-size: 18px; }
+    .card p { margin: 0; color: var(--muted); }
+
+    .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .price { background: linear-gradient(180deg, #141b25, #0d131b); border: 1px solid #233042; border-radius: 16px; padding: 20px; }
+    .price h3 { margin: 4px 0 8px; }
+    .tag { font-weight: 800; font-size: 32px; }
+    .price ul { margin: 12px 0 16px; padding-left: 18px; color: var(--muted); }
+
+    .faq details { background: #0f151e; border: 1px solid #1f2a38; border-radius: 12px; padding: 12px 14px; }
+    .faq details + details { margin-top: 10px; }
+    footer { padding: 40px 0 60px; color: #97a7bd; border-top: 1px solid #1d2530; }
+    @media (max-width: 900px) {
+      .hero .wrap { grid-template-columns: 1fr; }
+      .grid-3, .pricing { grid-template-columns: 1fr; }
+      nav ul { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand"><div class="logo" aria-hidden="true"></div><span>Your Brand</span></div>
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero" id="home">
+    <div class="container wrap">
+      <div>
+        <h1>Launch your site in minutes — no coding required</h1>
+        <p class="lead">Replace this text with what you do. Example: “I create AI content cutscenes for creators and brands.” This template is one file: easy to edit, fast to publish.</p>
+        <div class="btns">
+          <a class="btn primary" href="#pricing">See Pricing</a>
+          <a class="btn" href="#features">How it Works</a>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="fake-img">Your preview image or video here</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="container">
+      <h2>Simple. Fast. Mobile‑ready.</h2>
+      <p class="sub">Edit the text, swap the colors, and publish. Ideal for portfolios, one‑page stores, and service pages.</p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Drag‑&‑Drop Friendly</h3>
+          <p>Works great inside no‑code builders (Wix, Carrd, etc.) or as a standalone page.</p>
+        </div>
+        <div class="card">
+          <h3>One File</h3>
+          <p>Everything in <strong>index.html</strong>. Easier to learn and move later.</p>
+        </div>
+        <div class="card">
+          <h3>Fast & Accessible</h3>
+          <p>Loads quick, readable on phones, keyboard‑friendly.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <div class="container">
+      <h2>Pricing</h2>
+      <p class="sub">Replace with your own plans. You can link a button to a payment page (PayPal, Stripe, Gumroad) or to your email.</p>
+      <div class="pricing">
+        <div class="price">
+          <div class="tag">$0</div>
+          <h3>Starter</h3>
+          <ul>
+            <li>1 cutscene</li>
+            <li>720p export</li>
+            <li>Email delivery</li>
+          </ul>
+          <a class="btn" href="#contact">Get Started</a>
+        </div>
+        <div class="price">
+          <div class="tag">$49</div>
+          <h3>Creator</h3>
+          <ul>
+            <li>3 cutscenes</li>
+            <li>1080p export</li>
+            <li>2 revisions</li>
+          </ul>
+          <a class="btn primary" href="#contact">Buy Now</a>
+        </div>
+        <div class="price">
+          <div class="tag">$99</div>
+          <h3>Pro</h3>
+          <ul>
+            <li>8 cutscenes</li>
+            <li>4K export</li>
+            <li>Priority delivery</li>
+          </ul>
+          <a class="btn" href="#contact">Talk to Me</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" class="faq">
+    <div class="container">
+      <h2>FAQ</h2>
+      <details>
+        <summary>How do I pay?</summary>
+        <p>Link the buttons above to your payment page or use <em>mailto:you@example.com</em> to start an email.</p>
+      </details>
+      <details>
+        <summary>Can I change colors?</summary>
+        <p>Yes. In the <code>&lt;style&gt;</code> at the top, change <code>--accent</code> and <code>--accent-2</code>.</p>
+      </details>
+      <details>
+        <summary>Will this work on phones?</summary>
+        <p>Yep. This template is responsive and mobile‑friendly.</p>
+      </details>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="container">
+      <h2>Contact</h2>
+      <p class="sub">Replace this with your real email or form service.</p>
+      <div class="panel">
+        <p>📧 <a href="mailto:you@example.com">you@example.com</a></p>
+        <p>🗓️ Prefer a form? You can embed any form link here.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">© <span id="year"></span> Your Brand — All rights reserved.</div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

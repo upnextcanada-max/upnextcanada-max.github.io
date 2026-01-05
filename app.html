@@ -417,7 +417,7 @@
 
       <!-- Settings Panel (Collapsible) -->
       <div class="panel" style="margin-top: 24px;">
-        <h2 style="cursor: pointer;" onclick="document.getElementById('settingsContent').style.display = document.getElementById('settingsContent').style.display === 'none' ? 'block' : 'none'">
+        <h2 id="settingsToggle" style="cursor: pointer;">
           ⚙️ Settings & Configuration
           <span style="float: right; font-size: 14px;">▼</span>
         </h2>
@@ -741,19 +741,27 @@
             </div>
           </div>
           <div class="queue-item-actions">
-            <button class="btn small" onclick="removeFromQueue(${index})">🗑️</button>
+            <button class="btn small" data-queue-index="${index}">🗑️</button>
           </div>
         </div>
       `).join('');
+      
+      // Add event listeners for remove buttons
+      container.querySelectorAll('.queue-item-actions button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const index = parseInt(btn.dataset.queueIndex);
+          removeFromQueue(index);
+        });
+      });
 
       updateUIState();
     }
 
-    window.removeFromQueue = function(index) {
+    function removeFromQueue(index) {
       state.queue.splice(index, 1);
       renderQueue();
       showNotification('Removed from queue', 'success');
-    };
+    }
 
     // Post to Instagram
     document.getElementById('postAllBtn').addEventListener('click', async () => {
@@ -787,14 +795,14 @@
 
         renderQueue();
         renderHistory();
+        await new Promise(resolve => setTimeout(resolve, 500)); // Brief delay between posts
       }
 
       showNotification('Posting complete!', 'success');
     });
 
     async function postToInstagram(post) {
-      // This is a placeholder for the actual Instagram API call
-      // In production, this would call your backend service
+      // Call backend service to post to Instagram
       const response = await fetch(state.settings.backendEndpoint, {
         method: 'POST',
         headers: {
@@ -812,8 +820,7 @@
         throw new Error('Failed to post to Instagram');
       }
 
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      return response.json();
     }
 
     function renderHistory() {
@@ -865,6 +872,12 @@
       } catch (error) {
         showNotification(`Failed to import: ${error.message}`, 'error');
       }
+    });
+
+    // Settings toggle
+    document.getElementById('settingsToggle').addEventListener('click', () => {
+      const content = document.getElementById('settingsContent');
+      content.style.display = content.style.display === 'none' ? 'block' : 'none';
     });
 
     // Settings

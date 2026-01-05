@@ -83,16 +83,26 @@ export default async function handler(req, res) {
 
 // Helper function to upload image to cloud storage
 async function uploadImageToCloud(base64Image) {
-  // Example using Cloudinary
+  // Example using Cloudinary with signed upload (recommended for production)
   // You'll need to set up a Cloudinary account and get API credentials
   
   const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
   const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
   const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
 
+  // Generate signature for secure upload
+  const timestamp = Math.round(new Date().getTime() / 1000);
+  const crypto = require('crypto');
+  const signature = crypto
+    .createHash('sha256')
+    .update(`timestamp=${timestamp}${CLOUDINARY_API_SECRET}`)
+    .digest('hex');
+
   const formData = new FormData();
   formData.append('file', base64Image);
-  formData.append('upload_preset', 'unsigned_preset'); // or use signed upload
+  formData.append('timestamp', timestamp);
+  formData.append('api_key', CLOUDINARY_API_KEY);
+  formData.append('signature', signature);
 
   const response = await fetch(
     `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,

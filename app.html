@@ -1,0 +1,894 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Video Screenshot Auto-Post — Instagram & OpenArt</title>
+  <meta name="description" content="Automatically capture and post video screenshots to Instagram with OpenArt I2V integration" />
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #121820;
+      --text: #e9eef5;
+      --muted: #a9b6c6;
+      --accent: #6ee7ff;
+      --accent-2: #7c5cff;
+      --ring: #1e90ff44;
+      --success: #4ade80;
+      --warning: #fbbf24;
+      --error: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text); background: radial-gradient(1000px 600px at 10% -10%, #182131, transparent), var(--bg);
+      min-height: 100vh;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+    header { position: sticky; top: 0; z-index: 10; background: rgba(11,15,20,.8); backdrop-filter: blur(8px); border-bottom: 1px solid #1d2530; }
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .3px; }
+    .logo { width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 0 0 3px #00000022; }
+
+    .app-container { padding: 32px 0 64px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .panel { background: linear-gradient(180deg, #141b25, #0f151e); border: 1px solid #1f2a38; border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px #00000044 inset, 0 10px 30px #00000022; }
+    .panel h2 { margin: 0 0 16px; font-size: 20px; }
+    .panel h3 { margin: 0 0 12px; font-size: 18px; }
+
+    .upload-zone {
+      border: 2px dashed #2a3442;
+      border-radius: 12px;
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: #0d1319;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--accent);
+      background: #111820;
+    }
+    .upload-zone input[type="file"] {
+      display: none;
+    }
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: 1px solid #2a3442;
+      background: #171f2b;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: #1f2937; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn.primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #0c0f15;
+      border-color: transparent;
+    }
+    .btn.success { background: var(--success); color: #000; border-color: transparent; }
+    .btn.small { padding: 8px 12px; font-size: 13px; }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #2a3442;
+      border-radius: 8px;
+      background: #0d1319;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .video-preview {
+      margin: 20px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+    }
+    .video-preview video {
+      width: 100%;
+      display: block;
+    }
+
+    .screenshots-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .screenshot-item {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #0d1319;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .screenshot-item:hover {
+      border-color: var(--accent);
+    }
+    .screenshot-item.selected {
+      border-color: var(--success);
+      box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2);
+    }
+    .screenshot-item img {
+      width: 100%;
+      display: block;
+    }
+    .screenshot-item .timestamp {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.7);
+      color: var(--text);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .screenshot-item .select-indicator {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      width: 24px;
+      height: 24px;
+      background: var(--success);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .screenshot-item.selected .select-indicator {
+      opacity: 1;
+    }
+
+    .queue-item {
+      background: #0d1319;
+      border: 1px solid #1f2a38;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .queue-item img {
+      width: 80px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+    .queue-item-info {
+      flex: 1;
+    }
+    .queue-item-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .queue-item-status {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .queue-item-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-badge.pending { background: #2a3442; color: var(--muted); }
+    .status-badge.processing { background: #fbbf2422; color: var(--warning); }
+    .status-badge.posted { background: #4ade8022; color: var(--success); }
+    .status-badge.error { background: #ef444422; color: var(--error); }
+
+    .notification {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: var(--panel);
+      border: 1px solid #1f2a38;
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 10px 40px #00000066;
+      z-index: 1000;
+      min-width: 300px;
+      animation: slideIn 0.3s;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(400px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .notification.success { border-left: 4px solid var(--success); }
+    .notification.error { border-left: 4px solid var(--error); }
+    .notification.warning { border-left: 4px solid var(--warning); }
+
+    .settings-section {
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid #1f2a38;
+    }
+    .settings-section:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .info-box {
+      background: #1a2332;
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    .info-box p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--muted);
+    }
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+
+    @media (max-width: 900px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .screenshots-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <span>Video Screenshot Auto-Post</span>
+      </div>
+      <nav>
+        <a href="index.html" class="btn small">← Back to Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="app-container">
+    <div class="container">
+      <div class="grid-2">
+        <!-- Left Column: Upload & Process -->
+        <div>
+          <!-- Video Upload Section -->
+          <div class="panel">
+            <h2>📹 Upload Video</h2>
+            <div class="upload-zone" id="uploadZone">
+              <div class="upload-icon">📤</div>
+              <h3>Drag & Drop Video Here</h3>
+              <p style="color: var(--muted); margin: 8px 0;">or click to browse</p>
+              <p style="color: var(--muted); font-size: 13px;">Supports MP4, MOV, WebM, AVI</p>
+              <input type="file" id="videoInput" accept="video/*" />
+            </div>
+
+            <div id="videoPreviewSection" style="display: none;">
+              <div class="video-preview">
+                <video id="videoPreview" controls></video>
+              </div>
+              <div class="form-group">
+                <label>Video Title / Caption</label>
+                <input type="text" id="videoTitle" placeholder="Enter title for Instagram post..." />
+              </div>
+              <div class="form-group">
+                <label>Caption (Optional)</label>
+                <textarea id="videoCaption" placeholder="Add additional caption text..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Screenshot Settings -->
+          <div class="panel" style="margin-top: 24px;">
+            <h2>⚙️ Screenshot Settings</h2>
+            <div class="form-group">
+              <label>Capture Method</label>
+              <select id="captureMethod">
+                <option value="interval">Time Intervals</option>
+                <option value="manual">Manual Selection</option>
+                <option value="keyframes">Key Frames (Auto)</option>
+              </select>
+            </div>
+            <div class="form-group" id="intervalSettings">
+              <label>Number of Screenshots</label>
+              <input type="number" id="screenshotCount" value="5" min="1" max="20" />
+            </div>
+            <button class="btn primary" id="captureBtn" style="width: 100%;" disabled>
+              📸 Capture Screenshots
+            </button>
+          </div>
+
+          <!-- OpenArt I2V Integration -->
+          <div class="panel" style="margin-top: 24px;">
+            <h2>🎨 OpenArt I2V</h2>
+            <div class="info-box">
+              <p>Import videos generated from OpenArt I2V service. Enter your API key in Settings to enable this feature.</p>
+            </div>
+            <div class="form-group">
+              <label>OpenArt Video URL or ID</label>
+              <input type="text" id="openartUrl" placeholder="Paste video URL or generation ID..." />
+            </div>
+            <button class="btn" id="importOpenartBtn" style="width: 100%;" disabled>
+              ⬇️ Import from OpenArt
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Column: Screenshots & Queue -->
+        <div>
+          <!-- Screenshot Preview & Selection -->
+          <div class="panel">
+            <h2>🖼️ Captured Screenshots</h2>
+            <div id="screenshotsContainer">
+              <div class="empty-state">
+                <div class="empty-state-icon">📷</div>
+                <p>No screenshots yet</p>
+                <p style="font-size: 14px;">Upload a video and capture screenshots to get started</p>
+              </div>
+            </div>
+            <div id="screenshotActions" style="display: none; margin-top: 16px;">
+              <button class="btn success" id="addToQueueBtn" style="width: 100%;">
+                ➕ Add Selected to Post Queue
+              </button>
+            </div>
+          </div>
+
+          <!-- Post Queue -->
+          <div class="panel" style="margin-top: 24px;">
+            <h2>📋 Post Queue</h2>
+            <div id="queueContainer">
+              <div class="empty-state">
+                <div class="empty-state-icon">📝</div>
+                <p>Queue is empty</p>
+                <p style="font-size: 14px;">Add screenshots to queue to post them to Instagram</p>
+              </div>
+            </div>
+            <button class="btn primary" id="postAllBtn" style="width: 100%; margin-top: 16px;" disabled>
+              🚀 Post All to Instagram
+            </button>
+          </div>
+
+          <!-- Post History -->
+          <div class="panel" style="margin-top: 24px;">
+            <h2>📜 Post History</h2>
+            <div id="historyContainer">
+              <div class="empty-state">
+                <div class="empty-state-icon">📊</div>
+                <p>No posts yet</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Panel (Collapsible) -->
+      <div class="panel" style="margin-top: 24px;">
+        <h2 id="settingsToggle" style="cursor: pointer;">
+          ⚙️ Settings & Configuration
+          <span style="float: right; font-size: 14px;">▼</span>
+        </h2>
+        <div id="settingsContent" style="display: none; margin-top: 16px;">
+          <div class="settings-section">
+            <h3>Instagram API Configuration</h3>
+            <div class="info-box">
+              <p><strong>Note:</strong> Instagram posting requires a backend service due to API restrictions. See documentation for setup instructions.</p>
+            </div>
+            <div class="form-group">
+              <label>Backend API Endpoint</label>
+              <input type="text" id="backendEndpoint" placeholder="https://your-backend.com/api/instagram" />
+            </div>
+            <div class="form-group">
+              <label>Instagram Access Token</label>
+              <input type="password" id="instagramToken" placeholder="Your Instagram access token..." />
+            </div>
+            <div class="form-group">
+              <label>Instagram User ID</label>
+              <input type="text" id="instagramUserId" placeholder="Your Instagram user ID..." />
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h3>OpenArt I2V Configuration</h3>
+            <div class="form-group">
+              <label>OpenArt API Key</label>
+              <input type="password" id="openartApiKey" placeholder="Your OpenArt API key..." />
+            </div>
+            <div class="form-group">
+              <label>OpenArt API Endpoint</label>
+              <input type="text" id="openartEndpoint" value="https://api.openart.ai/v1" />
+            </div>
+          </div>
+
+          <button class="btn success" id="saveSettingsBtn" style="width: 100%;">
+            💾 Save Settings
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="notificationContainer"></div>
+
+  <script>
+    // Application State
+    const state = {
+      currentVideo: null,
+      screenshots: [],
+      queue: [],
+      history: [],
+      settings: {
+        backendEndpoint: '',
+        instagramToken: '',
+        instagramUserId: '',
+        openartApiKey: '',
+        openartEndpoint: 'https://api.openart.ai/v1'
+      }
+    };
+
+    // Load settings from localStorage
+    function loadSettings() {
+      const saved = localStorage.getItem('videoScreenshotSettings');
+      if (saved) {
+        state.settings = { ...state.settings, ...JSON.parse(saved) };
+        document.getElementById('backendEndpoint').value = state.settings.backendEndpoint || '';
+        document.getElementById('instagramToken').value = state.settings.instagramToken || '';
+        document.getElementById('instagramUserId').value = state.settings.instagramUserId || '';
+        document.getElementById('openartApiKey').value = state.settings.openartApiKey || '';
+        document.getElementById('openartEndpoint').value = state.settings.openartEndpoint || '';
+      }
+    }
+
+    // Save settings to localStorage
+    function saveSettings() {
+      state.settings.backendEndpoint = document.getElementById('backendEndpoint').value;
+      state.settings.instagramToken = document.getElementById('instagramToken').value;
+      state.settings.instagramUserId = document.getElementById('instagramUserId').value;
+      state.settings.openartApiKey = document.getElementById('openartApiKey').value;
+      state.settings.openartEndpoint = document.getElementById('openartEndpoint').value;
+      
+      localStorage.setItem('videoScreenshotSettings', JSON.stringify(state.settings));
+      showNotification('Settings saved successfully!', 'success');
+      updateUIState();
+    }
+
+    // Show notification
+    function showNotification(message, type = 'success') {
+      const container = document.getElementById('notificationContainer');
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      container.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.remove();
+      }, 4000);
+    }
+
+    // Update UI state based on application state
+    function updateUIState() {
+      const hasVideo = state.currentVideo !== null;
+      const hasScreenshots = state.screenshots.length > 0;
+      const hasQueue = state.queue.length > 0;
+      const hasInstagramConfig = state.settings.backendEndpoint && state.settings.instagramToken;
+      const hasOpenArtConfig = state.settings.openartApiKey;
+
+      document.getElementById('captureBtn').disabled = !hasVideo;
+      document.getElementById('screenshotActions').style.display = hasScreenshots ? 'block' : 'none';
+      document.getElementById('postAllBtn').disabled = !hasQueue || !hasInstagramConfig;
+      document.getElementById('importOpenartBtn').disabled = !hasOpenArtConfig;
+    }
+
+    // Handle file upload
+    const uploadZone = document.getElementById('uploadZone');
+    const videoInput = document.getElementById('videoInput');
+    const videoPreview = document.getElementById('videoPreview');
+    const videoPreviewSection = document.getElementById('videoPreviewSection');
+
+    uploadZone.addEventListener('click', () => videoInput.click());
+
+    uploadZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('drag-over');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+      uploadZone.classList.remove('drag-over');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('drag-over');
+      const files = e.dataTransfer.files;
+      if (files.length > 0 && files[0].type.startsWith('video/')) {
+        handleVideoFile(files[0]);
+      }
+    });
+
+    videoInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleVideoFile(e.target.files[0]);
+      }
+    });
+
+    function handleVideoFile(file) {
+      const url = URL.createObjectURL(file);
+      videoPreview.src = url;
+      state.currentVideo = { file, url };
+      videoPreviewSection.style.display = 'block';
+      
+      // Auto-fill title with filename
+      const title = file.name.replace(/\.[^/.]+$/, "");
+      document.getElementById('videoTitle').value = title;
+      
+      showNotification('Video loaded successfully!', 'success');
+      updateUIState();
+    }
+
+    // Capture screenshots
+    document.getElementById('captureBtn').addEventListener('click', () => {
+      const method = document.getElementById('captureMethod').value;
+      const count = parseInt(document.getElementById('screenshotCount').value);
+      
+      if (!state.currentVideo) {
+        showNotification('Please upload a video first', 'error');
+        return;
+      }
+
+      if (method === 'interval') {
+        captureScreenshotsAtIntervals(count);
+      } else if (method === 'manual') {
+        showNotification('Manual mode: Pause the video and click "Capture Current Frame" button', 'warning');
+      } else {
+        showNotification('Key frame detection coming soon!', 'warning');
+      }
+    });
+
+    function captureScreenshotsAtIntervals(count) {
+      const video = videoPreview;
+      const duration = video.duration;
+      
+      if (!duration || duration === 0) {
+        showNotification('Please wait for video to load completely', 'warning');
+        return;
+      }
+
+      state.screenshots = [];
+      const interval = duration / (count + 1);
+      let captured = 0;
+
+      const captureNext = () => {
+        if (captured >= count) {
+          renderScreenshots();
+          showNotification(`Captured ${count} screenshots!`, 'success');
+          return;
+        }
+
+        const time = interval * (captured + 1);
+        video.currentTime = time;
+        
+        video.onseeked = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+          state.screenshots.push({
+            id: Date.now() + captured,
+            dataUrl,
+            timestamp: time,
+            selected: false
+          });
+          
+          captured++;
+          setTimeout(captureNext, 100);
+        };
+      };
+
+      captureNext();
+    }
+
+    function renderScreenshots() {
+      const container = document.getElementById('screenshotsContainer');
+      
+      if (state.screenshots.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📷</div>
+            <p>No screenshots yet</p>
+          </div>
+        `;
+        updateUIState();
+        return;
+      }
+
+      container.innerHTML = '<div class="screenshots-grid">' + 
+        state.screenshots.map(screenshot => `
+          <div class="screenshot-item ${screenshot.selected ? 'selected' : ''}" data-id="${screenshot.id}">
+            <img src="${screenshot.dataUrl}" alt="Screenshot" />
+            <div class="timestamp">${formatTime(screenshot.timestamp)}</div>
+            <div class="select-indicator">✓</div>
+          </div>
+        `).join('') +
+        '</div>';
+
+      // Add click handlers
+      container.querySelectorAll('.screenshot-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const id = parseInt(item.dataset.id);
+          const screenshot = state.screenshots.find(s => s.id === id);
+          screenshot.selected = !screenshot.selected;
+          renderScreenshots();
+        });
+      });
+
+      updateUIState();
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // Add to queue
+    document.getElementById('addToQueueBtn').addEventListener('click', () => {
+      const selected = state.screenshots.filter(s => s.selected);
+      
+      if (selected.length === 0) {
+        showNotification('Please select at least one screenshot', 'warning');
+        return;
+      }
+
+      const title = document.getElementById('videoTitle').value || 'Untitled';
+      const caption = document.getElementById('videoCaption').value || '';
+
+      selected.forEach(screenshot => {
+        state.queue.push({
+          id: Date.now() + Math.random(),
+          imageData: screenshot.dataUrl,
+          title,
+          caption,
+          status: 'pending',
+          timestamp: new Date().toISOString()
+        });
+      });
+
+      renderQueue();
+      showNotification(`Added ${selected.length} screenshot(s) to queue`, 'success');
+      
+      // Clear selection
+      state.screenshots.forEach(s => s.selected = false);
+      renderScreenshots();
+    });
+
+    function renderQueue() {
+      const container = document.getElementById('queueContainer');
+      
+      if (state.queue.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📝</div>
+            <p>Queue is empty</p>
+          </div>
+        `;
+        updateUIState();
+        return;
+      }
+
+      container.innerHTML = state.queue.map((item, index) => `
+        <div class="queue-item">
+          <img src="${item.imageData}" alt="Screenshot" />
+          <div class="queue-item-info">
+            <div class="queue-item-title">${item.title}</div>
+            <div class="queue-item-status">
+              <span class="status-badge ${item.status}">${item.status}</span>
+            </div>
+          </div>
+          <div class="queue-item-actions">
+            <button class="btn small" data-queue-index="${index}">🗑️</button>
+          </div>
+        </div>
+      `).join('');
+      
+      // Add event listeners for remove buttons
+      container.querySelectorAll('.queue-item-actions button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const index = parseInt(btn.dataset.queueIndex);
+          removeFromQueue(index);
+        });
+      });
+
+      updateUIState();
+    }
+
+    function removeFromQueue(index) {
+      state.queue.splice(index, 1);
+      renderQueue();
+      showNotification('Removed from queue', 'success');
+    }
+
+    // Post to Instagram
+    document.getElementById('postAllBtn').addEventListener('click', async () => {
+      if (!state.settings.backendEndpoint || !state.settings.instagramToken) {
+        showNotification('Please configure Instagram API settings first', 'error');
+        return;
+      }
+
+      const pendingPosts = state.queue.filter(p => p.status === 'pending');
+      
+      if (pendingPosts.length === 0) {
+        showNotification('No pending posts in queue', 'warning');
+        return;
+      }
+
+      showNotification('Posting to Instagram...', 'warning');
+
+      for (const post of pendingPosts) {
+        post.status = 'processing';
+        renderQueue();
+
+        try {
+          // Simulate API call (replace with actual backend call)
+          await postToInstagram(post);
+          post.status = 'posted';
+          state.history.push({ ...post, postedAt: new Date().toISOString() });
+        } catch (error) {
+          post.status = 'error';
+          showNotification(`Failed to post: ${error.message}`, 'error');
+        }
+
+        renderQueue();
+        renderHistory();
+        await new Promise(resolve => setTimeout(resolve, 500)); // Brief delay between posts
+      }
+
+      showNotification('Posting complete!', 'success');
+    });
+
+    async function postToInstagram(post) {
+      // Call backend service to post to Instagram
+      const response = await fetch(state.settings.backendEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${state.settings.instagramToken}`
+        },
+        body: JSON.stringify({
+          image: post.imageData,
+          caption: `${post.title}\n\n${post.caption}`,
+          userId: state.settings.instagramUserId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to post to Instagram');
+      }
+
+      return response.json();
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('historyContainer');
+      
+      if (state.history.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📊</div>
+            <p>No posts yet</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = state.history.slice(-5).reverse().map(item => `
+        <div class="queue-item">
+          <img src="${item.imageData}" alt="Screenshot" />
+          <div class="queue-item-info">
+            <div class="queue-item-title">${item.title}</div>
+            <div class="queue-item-status" style="font-size: 12px;">
+              Posted ${new Date(item.postedAt).toLocaleString()}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // OpenArt integration
+    document.getElementById('importOpenartBtn').addEventListener('click', async () => {
+      const url = document.getElementById('openartUrl').value;
+      
+      if (!url) {
+        showNotification('Please enter an OpenArt URL or ID', 'warning');
+        return;
+      }
+
+      if (!state.settings.openartApiKey) {
+        showNotification('Please configure OpenArt API key in settings', 'error');
+        return;
+      }
+
+      showNotification('Importing from OpenArt...', 'warning');
+      
+      try {
+        // Placeholder for OpenArt API integration
+        // In production, this would fetch the video from OpenArt I2V API
+        showNotification('OpenArt I2V integration is configured. Implement actual API call in backend.', 'warning');
+      } catch (error) {
+        showNotification(`Failed to import: ${error.message}`, 'error');
+      }
+    });
+
+    // Settings toggle
+    document.getElementById('settingsToggle').addEventListener('click', () => {
+      const content = document.getElementById('settingsContent');
+      content.style.display = content.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Settings
+    document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
+
+    // Initialize
+    loadSettings();
+    updateUIState();
+    renderScreenshots();
+    renderQueue();
+    renderHistory();
+  </script>
+</body>
+</html>
